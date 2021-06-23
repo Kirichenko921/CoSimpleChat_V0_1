@@ -1,7 +1,7 @@
-#include "CounterMessagesV01.h"
+﻿#include "CounterMessagesV01.h"
 
 
-CounterMessages::CounterMessages(const string& name) :_name(name)
+CounterMessages::CounterMessages(const std::string& name) :_name(name)
 {
 }
 
@@ -14,7 +14,7 @@ int CounterMessages::getCountMessages()
 	return _count;
 }
 
-string CounterMessages::getNikUser() const
+std::string CounterMessages::getNikUser() const
 {
 	return _name;
 }

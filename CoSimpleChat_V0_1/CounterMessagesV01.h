@@ -1,18 +1,18 @@
-#pragma once
+п»ї#pragma once
 #include <string>
-using namespace std;
+
 
 class CounterMessages
 {
 public:
-	explicit CounterMessages(const string& name); // подсчёт всех сообщений пользователя 
-	explicit CounterMessages(const int count);  // подсчёт старых сообщений пользователя
+	explicit CounterMessages(const std::string& name); // РїРѕРґСЃС‡С‘С‚ РІСЃРµС… СЃРѕРѕР±С‰РµРЅРёР№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ 
+	explicit CounterMessages(const int count);  // РїРѕРґСЃС‡С‘С‚ СЃС‚Р°СЂС‹С… СЃРѕРѕР±С‰РµРЅРёР№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 	int getCountMessages();
-	string getNikUser() const;
+	std::string getNikUser() const;
 	int totalMessages();
 
 private:
 	int _count = 0;
 	int _total = 0;
-	string _name;
+	std::string _name;
 };

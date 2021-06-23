@@ -1,4 +1,4 @@
-// CoSimpleChat.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
+п»ї// CoSimpleChat.cpp : Р­С‚РѕС‚ С„Р°Р№Р» СЃРѕРґРµСЂР¶РёС‚ С„СѓРЅРєС†РёСЋ "main". Р—РґРµСЃСЊ РЅР°С‡РёРЅР°РµС‚СЃСЏ Рё Р·Р°РєР°РЅС‡РёРІР°РµС‚СЃСЏ РІС‹РїРѕР»РЅРµРЅРёРµ РїСЂРѕРіСЂР°РјРјС‹.
 //
 
 
@@ -11,29 +11,24 @@
 
 
 //---------------------------------------------------------------------------------------------------------------------------------
-string verifyingRecipient(const vector <User>& ollUsers) // проверяем есть ли пользователь которому мы будем писать сообщение
+std::string verifyingRecipient(User& workingUserData) // РїСЂРѕРІРµСЂСЏРµРј РµСЃС‚СЊ Р»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РєРѕС‚РѕСЂРѕРјСѓ РјС‹ Р±СѓРґРµРј РїРёСЃР°С‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ
 {
-	const auto size = ollUsers.size();
-	string toUser;
+		std::string toUser;
 	while (true)
 	{
-		cout << "Enter the recipient's nickname:\n";
-		cout << "If you want to send the message all enter - all:\n";
-		//(cin >> toUser).get();// если не будет работать cin раскоментить эту строку
-		getline(cin, toUser);
-		for (size_t i = 0; i < size; ++i)
-		{
-			if (toUser == ollUsers[i].getUserNik() || toUser == "all")
-			{
-				return toUser;
-			}
-		}
-		cout << "\n\tThere is no such user";
+		std::cout << "Enter the recipient's nickname:\n";
+		std::cout << "If you want to send the message all enter - all:\n";
+		//(std::cin >> toUser).get();// РµСЃР»Рё РЅРµ Р±СѓРґРµС‚ СЂР°Р±РѕС‚Р°С‚СЊ cin СЂР°СЃРєРѕРјРµРЅС‚РёС‚СЊ СЌС‚Сѓ СЃС‚СЂРѕРєСѓ
+		getline(std::cin, toUser);
+					if (!workingUserData.checkingLogin(toUser) || toUser == "all")
+							return toUser;
+		
+				std::cout << "\n\tThere is no such user";
 	}
 }
 
 //--------------------------------------------------------------------------------------------------------------------
-void  readMessage(const string& user, const vector<Message>& allmess) // чтение всех сообщений для пользователя
+void  readMessage(const std::string& user, const std::vector<Message>& allmess) // С‡С‚РµРЅРёРµ РІСЃРµС… СЃРѕРѕР±С‰РµРЅРёР№ РґР»СЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 {
 	int count = 0;
 	const auto size = allmess.size();
@@ -41,26 +36,26 @@ void  readMessage(const string& user, const vector<Message>& allmess) // чтение 
 	{
 		if (allmess[i].getSendToUser() == user || allmess[i].getSendToUser() == "all")
 		{
-			cout << "From whom: " << allmess[i].getSendFromUser() << endl;
-			cout << "Date of the message: " << allmess[i].getdayMessage() << "/"
-				<< allmess[i].getmonthMessage() << "/" << allmess[i].getyearMessage() << "/" << endl;
-			cout << "Message: " << allmess[i].getMessage() << endl;
+			std::cout << "From whom: " << allmess[i].getSendFromUser() << std::endl;
+			std::cout << "Date of the message: " << allmess[i].getdayMessage() << "/"
+				<< allmess[i].getmonthMessage() << "/" << allmess[i].getyearMessage() << "/" << std:: endl;
+			std::cout << "Message: " << allmess[i].getMessage() << std::endl;
 			++count;
 		}
 	}
 	if (count == 0)
 	{
-		cout << "There are no messages for you!" << endl;
+		std::cout << "There are no messages for you!\n";
 	}
 }
 //------------------------------------------------------------------------------------------------------------------------------
-void  readMessageUser(const string& user, const vector<Message>& allmess)// чтение сообщений от определённого пользователя
+void  readMessageUser(const std::string& user, const std::vector<Message>& allmess)// С‡С‚РµРЅРёРµ СЃРѕРѕР±С‰РµРЅРёР№ РѕС‚ РѕРїСЂРµРґРµР»С‘РЅРЅРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 {
 	int count = 0;
-	string fromUser;
-	cout << "Enter the nickname of the user whose messages you want to read\n";
-	//(cin >> fromUser).get();// если не будет работать cin раскоментить эту строку
-	getline(cin, fromUser);
+	std::string fromUser;
+	std::cout << "Enter the nickname of the user whose messages you want to read\n";
+	//(std::cin >> fromUser).get();// РµСЃР»Рё РЅРµ Р±СѓРґРµС‚ СЂР°Р±РѕС‚Р°С‚СЊ cin СЂР°СЃРєРѕРјРµРЅС‚РёС‚СЊ СЌС‚Сѓ СЃС‚СЂРѕРєСѓ
+	getline(std::cin, fromUser);
 	const auto size = allmess.size();
 	for (size_t i = 0; i < size; ++i)
 	{
@@ -68,10 +63,10 @@ void  readMessageUser(const string& user, const vector<Message>& allmess)// чтен
 		{
 			if (fromUser == allmess[i].getSendFromUser())
 			{
-				cout << "From whom: " << allmess[i].getSendFromUser() << endl;
-				cout << "Date of the message: " << allmess[i].getdayMessage() << "/"
-					<< allmess[i].getmonthMessage() << "/" << allmess[i].getyearMessage() << "/" << endl;
-				cout << "Message: " << allmess[i].getMessage() << std::endl;
+				std::cout << "From whom: " << allmess[i].getSendFromUser() << std::endl;
+				std::cout << "Date of the message: " << allmess[i].getdayMessage() << "/"
+					<< allmess[i].getmonthMessage() << "/" << allmess[i].getyearMessage() << "/" << std::endl;
+				std::cout << "Message: " << allmess[i].getMessage() << std::endl;
 				++count;
 			}
 		}
@@ -79,17 +74,16 @@ void  readMessageUser(const string& user, const vector<Message>& allmess)// чтен
 	}
 }
 //-------------------------------------------------------------------------------------------------------------------------
-void regUser()  //Функция регистрации пользователя
+std::string regUser(User& workingUserData)  //Р¤СѓРЅРєС†РёСЏ СЂРµРіРёСЃС‚СЂР°С†РёРё РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 {
-	string name;  //Имя, которое вводит пользователь
-	string nik;  //Nik, который вводит пользователь
-	string password;  //Пароль, который вводит пользователь
-	User workingUserData;
+	std::string name;  //РРјСЏ, РєРѕС‚РѕСЂРѕРµ РІРІРѕРґРёС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ
+	std::string nik;  //Nik, РєРѕС‚РѕСЂС‹Р№ РІРІРѕРґРёС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ
+	std::string password;  //РџР°СЂРѕР»СЊ, РєРѕС‚РѕСЂС‹Р№ РІРІРѕРґРёС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ
 	bool checking = false;
 	while (!checking)
 	{
-		std::cout << "Enter a Nik: " << endl;
-		//(cin >> nik).get();// если не будет работать cin раскоментить эту строку
+		std::cout << "Enter a Nik: \n";
+		//(std::cin >> nik).get();// РµСЃР»Рё РЅРµ Р±СѓРґРµС‚ СЂР°Р±РѕС‚Р°С‚СЊ cin СЂР°СЃРєРѕРјРµРЅС‚РёС‚СЊ СЌС‚Сѓ СЃС‚СЂРѕРєСѓ
 		getline(std::cin, nik);
 		std::cout << "\n";
 		checking = workingUserData.checkingLogin(nik);
@@ -97,109 +91,90 @@ void regUser()  //Функция регистрации пользователя
 			std::cout << "Nick's busy. Enter another one!\n\n";
 	}
 	std::cout << "Enter a name: \n";
-	//(cin >> name).get();// если не будет работать cin раскоментить эту строку
+	//(std::cin >> name).get();// РµСЃР»Рё РЅРµ Р±СѓРґРµС‚ СЂР°Р±РѕС‚Р°С‚СЊ cin СЂР°СЃРєРѕРјРµРЅС‚РёС‚СЊ СЌС‚Сѓ СЃС‚СЂРѕРєСѓ
 	getline(std::cin, name);
 	std::cout << "\n";
 
 	std::cout << "Enter a password: \n";
-	//(cin >> password).get();// если не будет работать cin раскоментить эту строку
+	//(std::cin >> password).get();// РµСЃР»Рё РЅРµ Р±СѓРґРµС‚ СЂР°Р±РѕС‚Р°С‚СЊ cin СЂР°СЃРєРѕРјРµРЅС‚РёС‚СЊ СЌС‚Сѓ СЃС‚СЂРѕРєСѓ
 	getline(std::cin, password);
-		workingUserData.registration(nik, password, name);  //помещаем пользователя в контейнер
-		cout << "\n--- You have successfully registered! ---\n\n";
+		workingUserData.registration(nik, password, name);  //РїРѕРјРµС‰Р°РµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РІ РєРѕРЅС‚РµР№РЅРµСЂ
+		std::cout << "\n--- You have successfully registered! ---\n\n";
+		return nik;
 }
 //------------------------------------------------------------------------------------------------------------------------------------
-void loginUser(string& userNik, vector <User>& users)  //Функция входа
+void loginUser(std::string& userNik, User& workingUserData)  //Р¤СѓРЅРєС†РёСЏ РІС…РѕРґР°
 {
 	bool enterUser{ false };
-	string nik;  //Nik, который вводит пользователь
-	string accountPassword;  //пароль который сохранил пользователь для своего аккаунта
+	std::string nik;  //Nik, РєРѕС‚РѕСЂС‹Р№ РІРІРѕРґРёС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ
+	std::string accountPassword;  //РїР°СЂРѕР»СЊ РєРѕС‚РѕСЂС‹Р№ СЃРѕС…СЂР°РЅРёР» РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РґР»СЏ СЃРІРѕРµРіРѕ Р°РєРєР°СѓРЅС‚Р°
 
 	do
 	{
-		cout << "Enter your nickname:" << endl;
-		//(cin >> nik).get();// если не будет работать cin раскоментить эту строку
-		getline(cin, nik);
-		cout << "" << endl;
+		std::cout << "Enter your nickname:\n";
+		//(std::cin >> nik).get();// РµСЃР»Рё РЅРµ Р±СѓРґРµС‚ СЂР°Р±РѕС‚Р°С‚СЊ cin СЂР°СЃРєРѕРјРµРЅС‚РёС‚СЊ СЌС‚Сѓ СЃС‚СЂРѕРєСѓ
+		getline(std::cin, nik);
+		std::cout << "\n";
 
-
-		for (size_t i = 0; i < users.size(); i++)  //ищем пользователя с таким ником
-		{
-			if (users[i].getUserNik() == nik)
-			{
-				accountPassword = users[i].getUserPassword();
-				enterUser = true;
-				break;
-			}
-		}
-
-		if (!enterUser)  //если в база не оказалось такого ника
-		{
-			cout << "There is no user with this nickname!" << endl;
-			cout << "" << endl;
-		}
-
+		if (workingUserData.checkingLogin(nik))  //РµСЃР»Рё РІ Р±Р°Р·Р° РЅРµ РѕРєР°Р·Р°Р»РѕСЃСЊ С‚Р°РєРѕРіРѕ РЅРёРєР°
+					std::cout << "There is no user with this nickname!\n\n";	
+		else
+			enterUser = true;
 	} while (!enterUser);
 
-	string enterPassword;  //Пароль, который вводит пользователь
-	cout << "Enter password:" << endl;
-	//(cin >> password).get();// если не будет работать cin раскоментить эту строку
-	getline(cin, enterPassword);
-	cout << "" << endl;
+	std::string enterPassword;  //РџР°СЂРѕР»СЊ, РєРѕС‚РѕСЂС‹Р№ РІРІРѕРґРёС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ
+	std::cout << "Enter password:\n";
+	//(std::cin >> password).get();// РµСЃР»Рё РЅРµ Р±СѓРґРµС‚ СЂР°Р±РѕС‚Р°С‚СЊ cin СЂР°СЃРєРѕРјРµРЅС‚РёС‚СЊ СЌС‚Сѓ СЃС‚СЂРѕРєСѓ
+	getline(std::cin, enterPassword);
+	std::cout << "\n";
 
 
-	if (enterPassword == accountPassword)  //Сравниваем пароли,если совпадают
+	if (workingUserData.comparisonLogin(nik,enterPassword))  //РЎСЂР°РІРЅРёРІР°РµРј РїР°СЂРѕР»Рё,РµСЃР»Рё СЃРѕРІРїР°РґР°СЋС‚
 	{
-		cout << "--- You have successfully logged in! ---" << endl;
-		cout << "" << endl;
-		userNik = nik; // меняем пользователя чата
+		std::cout << "--- You have successfully logged in! ---\n\n";
+				userNik = nik; // РјРµРЅСЏРµРј РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ С‡Р°С‚Р°
 	}
-	else  //иначе выходим  и пользователь остаётся прежним
+	else  //РёРЅР°С‡Рµ РІС‹С…РѕРґРёРј  Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РѕСЃС‚Р°С‘С‚СЃСЏ РїСЂРµР¶РЅРёРј
 	{
-		cout << "Bed password!" << endl;
-		cout << "" << endl;
+		std::cout << "Bed password!\n\n";
 	}
 
 }
 //------------------------------------------------------------------------------------------------------------------
-void exitProg(bool& userMenu, bool& messageMenu) //функция выхода
+void exitProg(bool& userMenu, bool& messageMenu) //С„СѓРЅРєС†РёСЏ РІС‹С…РѕРґР°
 {
-	cout << "--- See you next time! ---" << endl;
+	std::cout << "--- See you next time! ---\n";
 	userMenu = false;
 	messageMenu = false;
 }
 //------------------------------------------------------------------------------------------------------------------
-size_t listUsers(size_t index, vector <User>& ollUsers) // вывод списка пользователей
+int listUsers(int index, User& workingUserData) // РІС‹РІРѕРґ СЃРїРёСЃРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
 {
-	const auto size = ollUsers.size();
-	if (size > index)  // если пользователей увеличилось, выводим обновлённый список
+	
+	if (workingUserData.countUser > index)  // РµСЃР»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ СѓРІРµР»РёС‡РёР»РѕСЃСЊ, РІС‹РІРѕРґРёРј РѕР±РЅРѕРІР»С‘РЅРЅС‹Р№ СЃРїРёСЃРѕРє
 	{
-		cout << "\t\t\t\t\t\t\t\tList of users:\n";
-		for (size_t i = 0; i < size; ++i)
-		{
-			cout << "\t\t\t\t\t\t" << i + 1 << ") " << ollUsers[i].getUserNik() << endl;
-		}
+		std::cout << "\t\t\t\t\t\t\t\tList of users:\n";
+		workingUserData.showLogins();
 		return ++index;
 	}
-	else if (size == 0)
+	else if (workingUserData.countUser == 0)
 	{
-		cout << "\t\t\t\t\t\tNo users yet\n"; // пользователей пока нет
+		std::cout << "\t\t\t\t\t\tNo users yet\n"; // РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ РїРѕРєР° РЅРµС‚
 	}
 	return index;
 }
 //----------------------------------------------------------------------------------------------------------------------
-void currentUser(const string& getName) // вывод пользователя который в настоящее время пользуется чатом
+void currentUser(const std::string& getName) // РІС‹РІРѕРґ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РєРѕС‚РѕСЂС‹Р№ РІ РЅР°СЃС‚РѕСЏС‰РµРµ РІСЂРµРјСЏ РїРѕР»СЊР·СѓРµС‚СЃСЏ С‡Р°С‚РѕРј
 {
 	if (getName.empty())
-	{
-		cout << "\n\t\t\t\t\t\t---No one is using the chat right now---\n";
-	}
+			std::cout << "\n\t\t\t\t\t\t---No one is using the chat right now---\n";
+	
 	else
-	{
-		cout << "\n\t\t\t\t\t\t--Now the chat is used by: " << getName << "---" << endl;
-	}
+			std::cout << "\n\t\t\t\t\t\t--Now the chat is used by: " << getName << "---\n";
+	
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------
-int newMessenger(vector <Message>& ollMessage, vector <CounterMessages>& oldMessage, const bool showMessages, const string& nik) // извещеие о наличии новых сообщений
+int newMessenger(std::vector <Message>& ollMessage, std::vector <CounterMessages>& oldMessage, const bool showMessages, const std::string& nik) // РёР·РІРµС‰РµРёРµ Рѕ РЅР°Р»РёС‡РёРё РЅРѕРІС‹С… СЃРѕРѕР±С‰РµРЅРёР№
 {
 	int oldCounter = 0;
 	int newCounter = 0;
@@ -222,7 +197,7 @@ int newMessenger(vector <Message>& ollMessage, vector <CounterMessages>& oldMess
 	}
 	if (showMessages)
 	{
-		cout << "\n\t\t\t\t\t\t!!!!!You have " << newCounter - oldCounter << " new messages!!!!\n";
+		std::cout << "\n\t\t\t\t\t\t!!!!!You have " << newCounter - oldCounter << " new messages!!!!\n";
 	}
 	return newCounter - oldCounter;
 
@@ -236,23 +211,22 @@ void getTimeMessage(int& dayMessage, int& monthMessage, int& yearMessage)
 	monthMessage = dateMessage.wMonth;
 	yearMessage = dateMessage.wYear;
 }
+
 int main()
 {
 	setlocale(LC_ALL, "");
-
-	vector <User> users;  //Создаем контейнер для хранения данных пользователей
-	char modeUsers;  //Переменная, в которой хранится выбранный режим
-	char modeMessage; // 
-	string message;// вводимое пользователем сообщение
-	string getName;  //Ник пользователя работающего в чате
-	vector <Message> ollMessage; // Хранение всех сообщений
-	vector <CounterMessages> newMessage;
-	vector <CounterMessages> oldMessage;
-	size_t count = 0; // контроль вывода списка пользователей
-	char modeUsers;  //Переменная, в которой хранится выбранный режим
+		
+	std::string message;// РІРІРѕРґРёРјРѕРµ РїРѕР»СЊР·РѕРІР°С‚РµР»РµРј СЃРѕРѕР±С‰РµРЅРёРµ
+    std::string getName;  //РќРёРє РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ СЂР°Р±РѕС‚Р°СЋС‰РµРіРѕ РІ С‡Р°С‚Рµ
+	std::vector <Message> ollMessage; // РҐСЂР°РЅРµРЅРёРµ РІСЃРµС… СЃРѕРѕР±С‰РµРЅРёР№
+	std::vector <CounterMessages> newMessage;
+	std::vector <CounterMessages> oldMessage;
+	size_t count = 0; // РєРѕРЅС‚СЂРѕР»СЊ РІС‹РІРѕРґР° СЃРїРёСЃРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
+	char modeMenu;  //РџРµСЂРµРјРµРЅРЅР°СЏ, РІ РєРѕС‚РѕСЂРѕР№ С…СЂР°РЅРёС‚СЃСЏ РІС‹Р±СЂР°РЅРЅС‹Р№ СЂРµР¶РёРј
 	bool userMenu = true;
-	bool messageMenu;
-	std::string nik;  //Nik, который вводит пользователь
+    bool messageMenu = false;
+    std::string nik;  //Nik, РєРѕС‚РѕСЂС‹Р№ РІРІРѕРґРёС‚ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ
+    std::string password; // РїР°СЂРѕР»СЊ РІРІРѕРґРёРјС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»РµРј
 	User workingUserData;
 	while (userMenu)
 	{
@@ -263,38 +237,37 @@ int main()
 		std::cout << "   1 - registration, 2 - login, 0 - exit\n";
 		std::cout << "--------------------------------------------\n";
 		currentUser(getName);
-		count = listUsers(count, users);// вывод списка пользователей
+		count = listUsers(count, workingUserData);// РІС‹РІРѕРґ СЃРїРёСЃРєР° РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№
 
-		std::cin >> modeUsers;
+		std::cin >> modeMenu;
 		std::cin.ignore(32767, '\n');
-		switch (modeUsers)
+		switch (modeMenu)
 		{
-		case '1':  //регистрация
+		case '1':  //СЂРµРіРёСЃС‚СЂР°С†РёСЏ
 		{
-			regUser();
-			//messageMenu = true;
-			//currentUser(getName);
-					
-			break;
+			getName=regUser(workingUserData);
+			currentUser(getName);
+			messageMenu = true;
+						break;
 		}
 
-		case '2':  //вход
+		case '2':  //РІС…РѕРґ
 		{
-			loginUser(getName, users);
+			loginUser(getName, workingUserData);
 			messageMenu = true;
 			currentUser(getName);
 			newMessenger(ollMessage, oldMessage, 1, getName);
 			break;
 		}
 
-		case '0':  //выход
+		case '0':  //РІС‹С…РѕРґ
 		{
 			exitProg(userMenu, messageMenu);
 			break;
 		}
 		default:
 		{
-			cout << "\nThere is no such menu item. Choose 1,2 or 0!!!\n";
+			std::cout << "\nThere is no such menu item. Choose 1,2 or 0!!!\n";
 			userMenu = true;
 			messageMenu = false;
 			break;
@@ -305,52 +278,52 @@ int main()
 		int dayMessage;
 		int monthMessage;
 		int yearMessage;
-		vector <Message> timeMessage; // Время создания всех сообщений
-		while (messageMenu)
+		std::vector <Message> timeMessage; // Р’СЂРµРјСЏ СЃРѕР·РґР°РЅРёСЏ РІСЃРµС… СЃРѕРѕР±С‰РµРЅРёР№
+		 while (messageMenu)
 		{
 
-			cout << "***************************" << endl;
-			cout << "* What do you want to do? *" << endl;
-			cout << "***************************" << endl;
-			cout << "1 - write a message  " << endl;
-			cout << "2 - read message     " << endl;
-			cout << "3 - read message User" << endl;
-			cout << "0 - exit" << endl;
-			cout << "---------------------------" << endl;
+			std::cout << "***************************\n";
+			std::cout << "* What do you want to do? *\n";
+			std::cout << "***************************\n";
+			std::cout << "1 - write a message  \n";
+			std::cout << "2 - read message     \n";
+			std::cout << "3 - read message User\n";
+			std::cout << "0 - exit\n";
+			std::cout << "---------------------------\n";
 
-			cin >> modeMessage;
-			cin.ignore(32767, '\n');
-			cout << endl;
-			switch (modeMessage)
+			std::cin >> modeMenu;
+			std::cin.ignore(32767, '\n');
+			std::cout << "\n";
+			switch (modeMenu)
 			{
-			case '1':  //написать сообщение
+			case '1':  //РЅР°РїРёСЃР°С‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ
 			{
-				string toUser = verifyingRecipient(users);
-				cout << "\nEnter a message:\n";
-				//(cin >> message).get();// если не будет работать cin раскоментить эту строку
-				getline(cin, message);
+				std::string toUser = verifyingRecipient(workingUserData);
+				std::cout << "\nEnter a message:\n";
+				//(std::cin >> message).get();// РµСЃР»Рё РЅРµ Р±СѓРґРµС‚ СЂР°Р±РѕС‚Р°С‚СЊ cin СЂР°СЃРєРѕРјРµРЅС‚РёС‚СЊ СЌС‚Сѓ СЃС‚СЂРѕРєСѓ
+				getline(std::cin, message);
 				getTimeMessage(dayMessage, monthMessage, yearMessage);
-				cout << endl;
-				ollMessage.push_back(Message(message, getName, toUser, dayMessage, monthMessage, yearMessage));//добавляем к списку сообщений
-				newMessage.push_back(CounterMessages(toUser));// добавляем в счётчик новых сообщений
+				std::cout << "\n";
+				ollMessage.push_back(Message(message, getName, toUser, dayMessage, monthMessage, yearMessage));//РґРѕР±Р°РІР»СЏРµРј Рє СЃРїРёСЃРєСѓ СЃРѕРѕР±С‰РµРЅРёР№
+				newMessage.push_back(CounterMessages(toUser));// РґРѕР±Р°РІР»СЏРµРј РІ СЃС‡С‘С‚С‡РёРє РЅРѕРІС‹С… СЃРѕРѕР±С‰РµРЅРёР№
 				break;
 			}
 
 
-			case '2':  //прочитать сообщения
+			case '2':  //РїСЂРѕС‡РёС‚Р°С‚СЊ СЃРѕРѕР±С‰РµРЅРёСЏ
 			{
-				readMessage(getName, ollMessage);  // читаем все сообщения
-				const int number = newMessenger(ollMessage, oldMessage, 0, getName); // присваиваем индексу разницу между количеством старых и новых сообщений
-				for (int i = 0; i < number; ++i)                      // выравниваем количество новых и старых сообщений
+				readMessage(getName, ollMessage);  // С‡РёС‚Р°РµРј РІСЃРµ СЃРѕРѕР±С‰РµРЅРёСЏ
+				const int number = newMessenger(ollMessage, oldMessage, 0, getName); // РїСЂРёСЃРІР°РёРІР°РµРј РёРЅРґРµРєСЃСѓ СЂР°Р·РЅРёС†Сѓ РјРµР¶РґСѓ РєРѕР»РёС‡РµСЃС‚РІРѕРј СЃС‚Р°СЂС‹С… Рё РЅРѕРІС‹С… СЃРѕРѕР±С‰РµРЅРёР№
+				for (int i = 0; i < number; ++i)                      // РІС‹СЂР°РІРЅРёРІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ РЅРѕРІС‹С… Рё СЃС‚Р°СЂС‹С… СЃРѕРѕР±С‰РµРЅРёР№
 				{
-					oldMessage.push_back(CounterMessages(getName));         // теперь все сообщения прочитаны
+					oldMessage.push_back(CounterMessages(getName));         // С‚РµРїРµСЂСЊ РІСЃРµ СЃРѕРѕР±С‰РµРЅРёСЏ РїСЂРѕС‡РёС‚Р°РЅС‹
 				}
-				cout << endl;
+				std::cout << "\n";
 				break;
 			}
 
 
-			case '3':  // прочитать сообщения от определённого пользователя
+			case '3':  // РїСЂРѕС‡РёС‚Р°С‚СЊ СЃРѕРѕР±С‰РµРЅРёСЏ РѕС‚ РѕРїСЂРµРґРµР»С‘РЅРЅРѕРіРѕ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
 			{
 				readMessageUser(getName, ollMessage);
 				const int number = newMessenger(ollMessage, oldMessage, 0, getName);
@@ -358,19 +331,19 @@ int main()
 				{
 					oldMessage.push_back(CounterMessages(getName));
 				}
-				cout << endl;
+				std::cout << "\n";
 				break;
 			}
 
 
-			case '0':  //выход из кейса сообщений
+			case '0':  //РІС‹С…РѕРґ РёР· РєРµР№СЃР° СЃРѕРѕР±С‰РµРЅРёР№
 			{
 				messageMenu = false;
 				break;
 			}
 			default:
 			{
-				cout << "\nThere is no such menu item. Choose 1,2,3 or 0!!!\n";
+				std::cout << "\nThere is no such menu item. Choose 1,2,3 or 0!!!\n";
 				userMenu = true;
 				break;
 			}
