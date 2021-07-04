@@ -118,7 +118,7 @@ uint* sha1(char* message, uint msize_bytes) {
 	}
 
 	// A,B,C,D,E являются выходными 32б составляющими посчитанного хэша
-	uint* digest = new uint[5];
+	uint* digest = new uint [5];
 	digest[0] = A;
 	digest[1] = B;
 	digest[2] = C;

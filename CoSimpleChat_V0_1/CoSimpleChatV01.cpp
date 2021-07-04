@@ -51,7 +51,6 @@ void  readMessage(const std::string& user, const std::vector<Message>& allmess) 
 //------------------------------------------------------------------------------------------------------------------------------
 void  readMessageUser(const std::string& user, const std::vector<Message>& allmess)// чтение сообщений от определённого пользователя
 {
-	int count = 0;
 	std::string fromUser;
 	std::cout << "Enter the nickname of the user whose messages you want to read\n";
 	//(std::cin >> fromUser).get();// если не будет работать cin раскоментить эту строку
@@ -67,7 +66,6 @@ void  readMessageUser(const std::string& user, const std::vector<Message>& allme
 				std::cout << "Date of the message: " << allmess[i].getdayMessage() << "/"
 					<< allmess[i].getmonthMessage() << "/" << allmess[i].getyearMessage() << "/" << std::endl;
 				std::cout << "Message: " << allmess[i].getMessage() << std::endl;
-				++count;
 			}
 		}
 
@@ -107,8 +105,7 @@ void loginUser(std::string& userNik, User& workingUserData)  //Функция в
 {
 	bool enterUser{ false };
 	std::string nik;  //Nik, который вводит пользователь
-	std::string accountPassword;  //пароль который сохранил пользователь для своего аккаунта
-
+	
 	do
 	{
 		std::cout << "Enter your nickname:\n";
@@ -148,7 +145,7 @@ void exitProg(bool& userMenu, bool& messageMenu) //функция выхода
 	messageMenu = false;
 }
 //------------------------------------------------------------------------------------------------------------------
-int listUsers(int index, User& workingUserData) // вывод списка пользователей
+int listUsers(size_t index, User& workingUserData) // вывод списка пользователей
 {
 	
 	if (workingUserData.countUser > index)  // если пользователей увеличилось, выводим обновлённый список

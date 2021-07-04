@@ -1,16 +1,13 @@
 ﻿#include "UserV01.h"
 
-User::UserData::UserData(const std::string userName, uint* userPassword) :_userName(userName),_userPassword(userPassword)
+User::UserData::UserData(const std::string& userName, uint* userPassword) :_userName(userName),_userPassword(userPassword)
 {
 }
 
-User::User()
-{
-}
+User::User() = default;
 
-bool User::checkingLogin(const std::string nik) // проверка наличия логина
-{
-	
+bool User::checkingLogin(const std::string& nik) // проверка наличия логина
+{	
 	for (auto x : _hashTableUser)
 	{
 		if (x.first == nik)
@@ -19,7 +16,7 @@ bool User::checkingLogin(const std::string nik) // проверка наличи
 	return true;
 }
 
-void User::registration(const std::string nik, const std::string userPassword, std::string userName)//регистрация пользователя
+void User::registration(const std::string& nik, const std::string& userPassword,const std::string& userName)//регистрация пользователя
 {
 	char cUserPassword[PASSLENGTH];
 	userPassword.copy(cUserPassword, PASSLENGTH);
@@ -36,18 +33,13 @@ void User::showLogins()
 		std::cout <<"\t\t\t\t\t\t\t"<< it->first <<"\n";
 	}
 }
-std::string User::getUserNik() const
-{
-	return std::string();
-}
-bool User::comparisonLogin(std::string nik, std::string userPassword)// сличение введённой пары логин-пароль с сущесвующей в массиве
+bool User::comparisonLogin(const std::string& nik,const std::string& userPassword)// сличение введённой пары логин-пароль с сущесвующей в массиве
 {
 	char cUserPassword[PASSLENGTH];
 	userPassword.copy(cUserPassword, PASSLENGTH);
 	cUserPassword[userPassword.length()] = '\0';
     uint* digest = sha1(cUserPassword, PASSLENGTH);//генериуем хэш пароля
-    int index = -1, i = 0;
-
+    
     for (std::unordered_map< std::string, UserData>::iterator it = _hashTableUser.begin(); it != _hashTableUser.end(); ++it) // ищем логин
     {
 		if (it->first == nik) // если нашли логин
