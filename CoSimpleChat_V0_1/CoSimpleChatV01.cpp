@@ -8,7 +8,9 @@
 #include <vector>
 #include <string>
 #include<Windows.h>
-
+#include <sqlext.h>
+#include <sqltypes.h>
+#include <sql.h>
 
 //---------------------------------------------------------------------------------------------------------------------------------
 std::string verifyingRecipient(User& workingUserData) // проверяем есть ли пользователь которому мы будем писать сообщение
@@ -84,7 +86,24 @@ std::string regUser(User& workingUserData)  //Функция регистрац�
 		//(std::cin >> nik).get();// если не будет работать cin раскоментить эту строку
 		getline(std::cin, nik);
 		std::cout << "\n";
-		checking = workingUserData.checkingLogin(nik);
+		//checking = workingUserData.checkingLogin(nik);
+		//**********************************************************************************************************************************************************************************************************
+		if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)L"SELECT id_user, name FROM dataUsers", SQL_NTS)) {
+			cout << "Error querying SQL Server \n";
+			goto COMPLETED;
+		}
+		else {
+			//
+			SQLCHAR name[SQL_RESULT_LEN];
+			SQLINTEGER id_user;
+			while (SQLFetch(sqlStmtHandle) == SQL_SUCCESS) {
+				SQLGetData(sqlStmtHandle, 1, SQL_INTEGER, &id_user, sizeof(SQLINTEGER), NULL);
+				SQLGetData(sqlStmtHandle, 2, SQL_CHAR, name, SQL_RESULT_LEN, NULL);
+				//Выведем на экран номер и имя
+				cout << "Номер " << id_user << "     Имя " << name << endl;
+			}
+		}
+		//*************************************************************************************************************************************************************************************************************
 		if (!checking)
 			std::cout << "Nick's busy. Enter another one!\n\n";
 	}
@@ -212,19 +231,76 @@ void getTimeMessage(int& dayMessage, int& monthMessage, int& yearMessage)
 int main()
 {
 	setlocale(LC_ALL, "");
-		
 	std::string message;// вводимое пользователем сообщение
-    std::string getName;  //Ник пользователя работающего в чате
+	std::string getName;  //Ник пользователя работающего в чате
 	std::vector <Message> ollMessage; // Хранение всех сообщений
 	std::vector <CounterMessages> newMessage;
 	std::vector <CounterMessages> oldMessage;
 	size_t count = 0; // контроль вывода списка пользователей
 	char modeMenu;  //Переменная, в которой хранится выбранный режим
 	bool userMenu = true;
-    bool messageMenu = false;
-    std::string nik;  //Nik, который вводит пользователь
-    std::string password; // пароль вводимый пользователем
+	bool messageMenu = false;
+	std::string nik;  //Nik, который вводит пользователь
+	std::string password; // пароль вводимый пользователем
 	User workingUserData;
+		//####################################################################################
+	constexpr auto SQL_RESULT_LEN = 240;
+	constexpr auto SQL_RETURN_CODE_LEN = 1024;
+	SQLHANDLE sqlConnHandle{ nullptr }; // дескриптор для соединения с базой данных
+	SQLHANDLE sqlEnvHandle{ nullptr }; // дескриптор окружения базы данных
+	SQLHANDLE sqlStmtHandle{ nullptr };  //
+	SQLWCHAR retconstring[SQL_RETURN_CODE_LEN]{}; // строка для кода возврата из функций API ODBC
+	// Выделяем дескриптор для базы данных
+	if (SQL_SUCCESS != SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &sqlEnvHandle))
+		goto COMPLETED;
+	if (SQL_SUCCESS != SQLSetEnvAttr(sqlEnvHandle, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0))
+		goto COMPLETED;
+	if (SQL_SUCCESS != SQLAllocHandle(SQL_HANDLE_DBC, sqlEnvHandle, &sqlConnHandle))
+		goto COMPLETED;
+	std::cout << "Attempting connection to SQL Server...\n";
+	// Устанавливаем соединение с сервером
+	switch (SQLDriverConnect(sqlConnHandle,
+		GetDesktopWindow(),
+		(SQLWCHAR*)L"DRIVER={MySQL ODBC 8.0 ANSI Driver};SERVER=localhost;PORT=3306;DATABASE=data_users;UID=root;PWD=root;",
+		//(SQLWCHAR*)L"DRIVER={MySQL ODBC 8.0 ANSI Driver};SERVER=MySQL_testdb64;DATABASE=testdb;UID=root;PWD=root;",
+		SQL_NTS,
+		retconstring,
+		1024,
+		NULL,
+		SQL_DRIVER_COMPLETE)) {
+	case SQL_SUCCESS:
+	case SQL_SUCCESS_WITH_INFO:
+		std::cout << "Successfully connected to SQL Server\n";
+		break;
+	case SQL_INVALID_HANDLE:
+	case SQL_ERROR:
+		std::cout << "Could not connect to SQL Server\n";
+		goto COMPLETED;
+	default:
+		break;
+	}
+	// Если соединение не установлено, то выходим из программы
+	if (SQL_SUCCESS != SQLAllocHandle(SQL_HANDLE_STMT, sqlConnHandle, &sqlStmtHandle))
+		goto COMPLETED;
+	std::cout << "\nExecuting T-SQL query...\n";
+	// Если выполнение запроса с ошибками, то выходим из программы
+	if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)L"SELECT @@VERSION", SQL_NTS)) {
+		std::cout << "Error querying SQL Server \n";
+		goto COMPLETED;
+	}
+	else {
+		//Объявление структуры данных для результата запроса версии SQL
+		SQLCHAR sqlVersion[SQL_RESULT_LEN];
+		SQLLEN ptrSqlVersion;
+		while (SQLFetch(sqlStmtHandle) == SQL_SUCCESS) {
+			SQLGetData(sqlStmtHandle, 1, SQL_CHAR, sqlVersion, SQL_RESULT_LEN, &ptrSqlVersion);
+			//Выведем на экран версию SQL
+			std::cout << "\nQuery Result:\n\n";
+			std::cout << sqlVersion << std::endl;
+		}
+	}
+	//#########################################################################################################
+	
 	while (userMenu)
 	{
 
@@ -348,5 +424,14 @@ int main()
 
 		}
 	}
-	return 0;
+	//###################################################################
+	// Закрываем соединение и выходим из программы
+COMPLETED:
+	SQLFreeHandle(SQL_HANDLE_STMT, sqlStmtHandle);
+	SQLDisconnect(sqlConnHandle);
+	SQLFreeHandle(SQL_HANDLE_DBC, sqlConnHandle);
+	SQLFreeHandle(SQL_HANDLE_ENV, sqlEnvHandle);
+	// Пауза перед закрытием консольного приложения
+	std::cout << "\nPress any key to exit...";
+	getchar();
 }
