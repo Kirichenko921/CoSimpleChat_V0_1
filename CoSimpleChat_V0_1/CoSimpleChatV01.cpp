@@ -11,7 +11,7 @@
 #include <sqlext.h>
 #include <sqltypes.h>
 #include <sql.h>
-
+#include <sstream>
 //---------------------------------------------------------------------------------------------------------------------------------
 std::string verifyingRecipient(User& workingUserData) // проверяем есть ли пользователь которому мы будем писать сообщение
 {
@@ -73,53 +73,101 @@ void  readMessageUser(const std::string& user, const std::vector<Message>& allme
 
 	}
 }
-//-------------------------------------------------------------------------------------------------------------------------
+//###########################################################################################################################
 std::string regUser(User& workingUserData)  //Функция регистрации пользователя
 {
-	std::string name;  //Имя, которое вводит пользователь
 	std::string nik;  //Nik, который вводит пользователь
+	std::string name;  //Имя, которое вводит пользователь
+	std::string surname;  //Фамилия, которую вводит пользователь
+	std::string emailUser;  //почта пользователя
 	std::string password;  //Пароль, который вводит пользователь
-	bool checking = false;
-	while (!checking)
-	{
-		std::cout << "Enter a Nik: \n";
-		//(std::cin >> nik).get();// если не будет работать cin раскоментить эту строку
-		getline(std::cin, nik);
+	char cUserPassword[PASSLENGTH]; // Перевод пароля в массив char для хэш функции
+	uint* hUserPassword = nullptr; // хэш пароля
+	std::stringstream ssPassword; // приведения типа uint в  uchar
+	std::string strNik; // Переменная для преобразования SQLCHAR в string
+	bool checking = false//  условие для выхода из цикла проверки уникальности логина
+	bool coincidence; // переменная для проверки наличия совпадений
+	std::string query; // запрос к базе данных (string принимает запросы в которых есть переменные)
+	std::wstring wsQuery; // приведение string к wstring (wstring запросы с переменными не принимает)
+	
+		while (!checking) // проверяем наличие логина в базе 
+		{
+			coincidence = false;
+			std::cout << "Enter a Nik: \n";
+			//(std::cin >> nik).get();// если не будет работать cin раскоментить эту строку
+			getline(std::cin, nik);  // ввод логина (ника)
+			std::cout << "\n";
+			                                             // перебираем таблицу пользователей по колонке логинов
+			if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)L"SELECT id_users, login FROM users_info", SQL_NTS)) 
+			{
+				cout << "Error querying SQL Server \n";
+				goto COMPLETED;
+			}
+			else
+			{
+				//
+				SQLCHAR nikName[SQL_RESULT_LEN];
+				SQLINTEGER id_users;
+				while (SQLFetch(sqlStmtHandle) == SQL_SUCCESS)
+				{
+					SQLGetData(sqlStmtHandle, 1, SQL_INTEGER, &id_users, sizeof(SQLINTEGER), NULL);
+					SQLGetData(sqlStmtHandle, 2, SQL_CHAR, nikName, SQL_RESULT_LEN, NULL);
+					strNik((const char*)nikName); // преобразовыаем  SQLCHAR В string
+					if (strNik == nik)   //  если логин есть в базе даём возможность ввести логин ещё раз
+						coincidence = true;
+				}
+			}
+			if (!coincidence) // если совпадений  нет выходим из цикла
+				checking = true;
+			if (!checking)
+				std::cout << "Nick's busy. Enter another one!\n\n";
+		}
+		
+		std::cout << "Enter a name: \n";
+		//(std::cin >> name).get();// если не будет работать cin раскоментить эту строку
+		getline(std::cin, name);
 		std::cout << "\n";
-		//checking = workingUserData.checkingLogin(nik);
-		//**********************************************************************************************************************************************************************************************************
-		if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)L"SELECT id_user, name FROM dataUsers", SQL_NTS)) {
+
+		std::cout << "Enter a surname: \n";
+		//(std::cin >> surname).get();// если не будет работать cin раскоментить эту строку
+		getline(std::cin, surname);
+		std::cout << "\n";
+
+		std::cout << "Enter a email: \n";
+		//(std::cin >> emailUser).get();// если не будет работать cin раскоментить эту строку
+		getline(std::cin, emailUser);
+		std::cout << "\n";
+
+		std::cout << "Enter a password: \n";
+		//(std::cin >> password).get();// если не будет работать cin раскоментить эту строку
+		getline(std::cin, password);
+
+		password.copy(cUserPassword, PASSLENGTH); // преобразовыаем пароль массив char
+		cUserPassword[password.length()] = '\0';
+		hUserPassword = sha1(cUserPassword, PASSLENGTH); // хэшируем пароль
+		std::cout << "\n--- You have successfully registered! ---\n\n";
+
+
+
+		query = "INSERT INTO users_info (login, name, surname, email_users) VALUES ( '" + nik + "', '" + name + "', '" + surname + "','" + emailUser + "');";  // запрос на добавление данных пользователя
+		wsQuery = std::wstring(query.begin(), query.end());  // преобразовываем запрос в wstring
+
+		if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS)) // добавляем данные в базу
+		{
 			cout << "Error querying SQL Server \n";
 			goto COMPLETED;
 		}
-		else {
-			//
-			SQLCHAR name[SQL_RESULT_LEN];
-			SQLINTEGER id_user;
-			while (SQLFetch(sqlStmtHandle) == SQL_SUCCESS) {
-				SQLGetData(sqlStmtHandle, 1, SQL_INTEGER, &id_user, sizeof(SQLINTEGER), NULL);
-				SQLGetData(sqlStmtHandle, 2, SQL_CHAR, name, SQL_RESULT_LEN, NULL);
-				//Выведем на экран номер и имя
-				cout << "Номер " << id_user << "     Имя " << name << endl;
-			}
-		}
-		//*************************************************************************************************************************************************************************************************************
-		if (!checking)
-			std::cout << "Nick's busy. Enter another one!\n\n";
-	}
-	std::cout << "Enter a name: \n";
-	//(std::cin >> name).get();// если не будет работать cin раскоментить эту строку
-	getline(std::cin, name);
-	std::cout << "\n";
 
-	std::cout << "Enter a password: \n";
-	//(std::cin >> password).get();// если не будет работать cin раскоментить эту строку
-	getline(std::cin, password);
-		workingUserData.registration(nik, password, name);  //помещаем пользователя в контейнер
-		std::cout << "\n--- You have successfully registered! ---\n\n";
-		return nik;
+		ssPassword << hUserPassword;   // приводим пароль к типу  string
+		query = "update users_passwords SET password_users = '" + ssPassword.str() + "' ORDER BY users_id DESC LIMIT 1;"; //  формируем запрос надобавления пароля в базу
+		wsQuery = std::wstring(query.begin(), query.end());
+		if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS))  //  добавляем хэш пароля в базу 
+		{
+			cout << "Error querying SQL Server \n";
+			goto COMPLETED;
+		}
 }
-//------------------------------------------------------------------------------------------------------------------------------------
+//################################################################################################################################################
 void loginUser(std::string& userNik, User& workingUserData)  //Функция входа
 {
 	bool enterUser{ false };
@@ -243,6 +291,7 @@ int main()
 	std::string nik;  //Nik, который вводит пользователь
 	std::string password; // пароль вводимый пользователем
 	User workingUserData;
+
 		//####################################################################################
 	constexpr auto SQL_RESULT_LEN = 240;
 	constexpr auto SQL_RETURN_CODE_LEN = 1024;
