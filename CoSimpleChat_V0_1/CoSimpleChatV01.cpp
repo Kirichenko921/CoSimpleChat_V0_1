@@ -6,30 +6,39 @@
 #include "MessageV01.h"
 #include "CounterMessagesV01.h"
 #include <vector>
-#include <string>
-#include<Windows.h>
-#include <sqlext.h>
-#include <sqltypes.h>
-#include <sql.h>
-#include <sstream>
-//---------------------------------------------------------------------------------------------------------------------------------
-std::string verifyingRecipient(User& workingUserData) // проверяем есть ли пользователь которому мы будем писать сообщение
+
+
+//###############################################################################################################################################
+std::string creatingMessage(std::string author) // создание сообщения
 {
-		std::string toUser;
-	while (true)
+	std::string message;
+	std::stringstream ssTemp; // Переменная для преобразования результатов запросов в string 
+	std::string query; // запрос к базе данных (string принимает запросы в которых есть переменные)
+	std::wstring wsQuery; // приведение string к wstring (wstring запросы с переменными не принимает)
+	std::string  recipient; // получатель сообщения
+	bool checking = false;//  условие для выхода из цикла проверки уникальности логина
+	checking = checkingLogin(sqlStmtHandle, recipient);
+	if (!checking)
+		std::cout << "There is no such login in the chat, try writing a message to an existing user!" << std::endl;
+
+
+	else
 	{
-		std::cout << "Enter the recipient's nickname:\n";
-		std::cout << "If you want to send the message all enter - all:\n";
-		//(std::cin >> toUser).get();// если не будет работать cin раскоментить эту строку
-		getline(std::cin, toUser);
-					if (!workingUserData.checkingLogin(toUser) || toUser == "all")
-							return toUser;
-		
-				std::cout << "\n\tThere is no such user";
+		std::cout << "\nEnter a message:\n";
+		//(std::cin >> message).get();// если не будет работать cin раскоментить эту строку
+		getline(std::cin, message);
+
+		query = "INSERT INTO user_messages VALUES (null, (select id_users from users_info where login = '" + author + "'), (select id_users from users_info where login = '" + recipient + "'), '" + message + "', CURRENT_DATE, 0);";
+		wsQuery = std::wstring(query.begin(), query.end());
+		if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS))
+		{
+			std::cout << "Error querying SQL Server \n";
+			goto COMPLETED;
+		}
 	}
 }
-
-//--------------------------------------------------------------------------------------------------------------------
+}
+//###############################################################################################################################################
 void  readMessage(const std::string& user, const std::vector<Message>& allmess) // чтение всех сообщений для пользователя
 {
 	int count = 0;
@@ -40,7 +49,7 @@ void  readMessage(const std::string& user, const std::vector<Message>& allmess) 
 		{
 			std::cout << "From whom: " << allmess[i].getSendFromUser() << std::endl;
 			std::cout << "Date of the message: " << allmess[i].getdayMessage() << "/"
-				<< allmess[i].getmonthMessage() << "/" << allmess[i].getyearMessage() << "/" << std:: endl;
+				<< allmess[i].getmonthMessage() << "/" << allmess[i].getyearMessage() << "/" << std::endl;
 			std::cout << "Message: " << allmess[i].getMessage() << std::endl;
 			++count;
 		}
@@ -82,135 +91,77 @@ std::string regUser()  //Функция регистрации пользова�
 	std::string emailUser;  //почта пользователя
 	std::string password;  //Пароль, который вводит пользователь
 	std::stringstream ssTemp; // Переменная для преобразования результатов запросов в string 
-	bool checking = false//  условие для выхода из цикла проверки уникальности логина
 	std::string query; // запрос к базе данных (string принимает запросы в которых есть переменные)
 	std::wstring wsQuery; // приведение string к wstring (wstring запросы с переменными не принимает)
 	SHA1 checksum; // хэширование пароля
-	 // проверяем наличие логина в базе 
-		while (!checking)
-		{
-				std::cout << "Enter a Nik: \n";
-			//(std::cin >> nik).get();// если не будет работать cin раскоментить эту строку
-			getline(std::cin, nik);  // ввод логина (ника)
-			std::cout << "\n";
-			                                           			query = ("SELECT login FROM users_info  WHERE login LIKE  '" + nik + "'; ") // формируем запрос 
-				wsQuery = std::wstring(query.begin(), query.end()); // преобразовываем запрос
-			if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS)) // запрашиваем в базе
-			{
-				std::cout << "Error querying SQL Server \n";
-				goto COMPLETED;
-			}
-			else
-			{
-				SQLCHAR nikName[SQL_RESULT_LEN];  // переменная для хранения результата запроса
-				while (SQLFetch(sqlStmtHandle) == SQL_SUCCESS)
-				{
-					SQLGetData(sqlStmtHandle, 1, SQL_CHAR, nikName, SQL_RESULT_LEN, NULL);
-				}
-				ssTemp << nikName;  // преобразовываем результат запроса  в string
-				if (ssTemp.str() == nik)   //  если логин есть в базе даём возможность ввести логин ещё раз
-				{
-					std::cout << "Nick's busy. Enter another one!\n\n";
-					std::stringstream().swap(ssTemp);  // очищаем переменную
-				}
-				else 
-				{
-					checking = true;
-					std::stringstream().swap(ssTemp);  // очищаем переменную
-				}
-				
-			}
-		}
-		
-		std::cout << "Enter a name: \n";
-		//(std::cin >> name).get();// если не будет работать cin раскоментить эту строку
-		getline(std::cin, name);
-		std::cout << "\n";
+	bool checking = true;
+	// проверяем наличие логина в базе 
+	while (cheking)
+	{
+		checking = checkingLogin(sqlStmtHandle, nik);
+		if (checking)
+			std::cout << "Nick's busy. Enter another one!\n\n";
+	}
 
-		std::cout << "Enter a surname: \n";
-		//(std::cin >> surname).get();// если не будет работать cin раскоментить эту строку
-		getline(std::cin, surname);
-		std::cout << "\n";
+	std::cout << "Enter a name: \n";
+	//(std::cin >> name).get();// если не будет работать cin раскоментить эту строку
+	getline(std::cin, name);
+	std::cout << "\n";
 
-		std::cout << "Enter a email: \n";
-		//(std::cin >> emailUser).get();// если не будет работать cin раскоментить эту строку
-		getline(std::cin, emailUser);
-		std::cout << "\n";
+	std::cout << "Enter a surname: \n";
+	//(std::cin >> surname).get();// если не будет работать cin раскоментить эту строку
+	getline(std::cin, surname);
+	std::cout << "\n";
 
-		std::cout << "Enter a password: \n";
-		//(std::cin >> password).get();// если не будет работать cin раскоментить эту строку
-		getline(std::cin, password);
+	std::cout << "Enter a email: \n";
+	//(std::cin >> emailUser).get();// если не будет работать cin раскоментить эту строку
+	getline(std::cin, emailUser);
+	std::cout << "\n";
 
-			// обновление таблицы данных пользователя
-		query = "INSERT INTO users_info (login, name, surname, email_users) VALUES ( '" + nik + "', '" + name + "', '" + surname + "','" + emailUser + "');";  // запрос на добавление данных пользователя
-		wsQuery = std::wstring(query.begin(), query.end());  // преобразовываем запрос в wstring
+	std::cout << "Enter a password: \n";
+	//(std::cin >> password).get();// если не будет работать cin раскоментить эту строку
+	getline(std::cin, password);
 
-		if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS)) // добавляем данные в базу
-		{
-			cout << "Error querying SQL Server \n";
-			goto COMPLETED;
-		}
-		  // обновление таблицв паролей
-		checksum.update(password);
-		hUserPassword = checksum.final();
-		query = "update users_passwords SET password_users = '" + hUserPassword + "' ORDER BY users_id DESC LIMIT 1;"; //  формируем запрос надобавления пароля в базу
-		wsQuery = std::wstring(query.begin(), query.end());
-		if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS))  //  добавляем хэш пароля в базу 
-		{
-			cout << "Error querying SQL Server \n";
-			goto COMPLETED;
-		}
+	// обновление таблицы данных пользователя
+	query = "INSERT INTO users_info (login, name, surname, email_users) VALUES ( '" + nik + "', '" + name + "', '" + surname + "','" + emailUser + "');";  // запрос на добавление данных пользователя
+	wsQuery = std::wstring(query.begin(), query.end());  // преобразовываем запрос в wstring
 
-		std::cout << "\n--- You have successfully registered! ---\n\n";
+	if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS)) // добавляем данные в базу
+	{
+		cout << "Error querying SQL Server \n";
+		goto COMPLETED;
+	}
+	// обновление таблицв паролей
+	checksum.update(password);
+	hUserPassword = checksum.final();
+	query = "update users_passwords SET password_users = '" + hUserPassword + "' ORDER BY users_id DESC LIMIT 1;"; //  формируем запрос надобавления пароля в базу
+	wsQuery = std::wstring(query.begin(), query.end());
+	if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS))  //  добавляем хэш пароля в базу 
+	{
+		cout << "Error querying SQL Server \n";
+		goto COMPLETED;
+	}
 
-		return nik;
+	std::cout << "\n--- You have successfully registered! ---\n\n";
+
+	return nik;
 }
 //################################################################################################################################################
 void loginUser(std::string& userNik)  //Функция входа
 {
-	bool enterUser{ false };
 	std::string nik;  //Nik, который вводит пользователь
 	std::string query; // Переменная для SQL запрроса
 	std::wstring wsQuery;//  Переменная для преобразования запроса в wstring
 	std::stringstream ssTemp; // Переменная для преобразования результатов запросов в string 
 	SHA1 checksum; // хэширование пароля
-
-	// ввод и проверка логина 
-	do
+	bool checking = false;
+	// ввод и проверка логина .
+	while (!checking)
 	{
-		std::cout << "Enter your nickname:\n";
-		//(std::cin >> nik).get();// если не будет работать cin раскоментить эту строку
-		getline(std::cin, nik);
-		std::cout << "\n";
-		query = ("SELECT login FROM users_info  WHERE login LIKE  '" + nik + "'; "); // формируем запрос на проверку наличия логина в базе
-		wsQuery = std::wstring(query.begin(), query.end()); // преобразовываем запрос
-		if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS)) // запрашиваем в базе
-		{
-			std::cout << "Error querying SQL Server \n";
-			goto COMPLETED;
-		}
-		else  
-		{
-			SQLCHAR nikName[SQL_RESULT_LEN];  // переменная для хранения результата запроса
-			while (SQLFetch(sqlStmtHandle) == SQL_SUCCESS)
-			{
-				SQLGetData(sqlStmtHandle, 1, SQL_CHAR, nikName, SQL_RESULT_LEN, NULL);
-			}
-			ssTemp << nikName;  // преобразовываем результат запроса  в string
-			if (nik != ssTemp.str())  //если в база не оказалось такого ника
-			{
-				std::cout << "There is no user with this nickname!\n\n";
-				std::stringstream().swap(ssTemp);  // очищаем переменную
-			}
-			else
-			{
-				enterUser = true;
-				std::cout << "Ok\n\n";
-				std::stringstream().swap(ssTemp);
-			}
-		}
-	} while (!enterUser);
-
+		checking = checkingLogin(sqlStmtHandle, nik);
+		if (!checking)
+			std::cout << "There is no user with this nickname!\n\n";
+	}
 	// ввод и проверка пароля
 	std::cout << "Enter password:\n";
 	//(std::cin >> password).get();// если не будет работать cin раскоментить эту строку
@@ -235,11 +186,11 @@ void loginUser(std::string& userNik)  //Функция входа
 			SQLGetData(sqlStmtHandle, 1, SQL_CHAR, sqlPassword, SQL_RESULT_LEN, NULL);
 			std::cout << sqlPassword << std::endl;
 		}
-				ssTemp << sqlPassword;// преобразовываем результат запроса  в string
+		ssTemp << sqlPassword;// преобразовываем результат запроса  в string
 		if (hUserPassword == ssTemp.str())  //Сравниваем пароли,если совпадают
 		{
 			std::cout << "--- You have successfully logged in! ---\n\n";
-			 userNik = nik; // меняем пользователя чата
+			userNik = nik; // меняем пользователя чата
 		}
 		else  //иначе выходим  и пользователь остаётся прежним
 		{
@@ -259,7 +210,7 @@ void exitProg(bool& userMenu, bool& messageMenu) //функция выхода
 //------------------------------------------------------------------------------------------------------------------
 int listUsers(size_t index, User& workingUserData) // вывод списка пользователей
 {
-	
+
 	if (workingUserData.countUser > index)  // если пользователей увеличилось, выводим обновлённый список
 	{
 		std::cout << "\t\t\t\t\t\t\t\tList of users:\n";
@@ -276,11 +227,11 @@ int listUsers(size_t index, User& workingUserData) // вывод списка п
 void currentUser(const std::string& getName) // вывод пользователя который в настоящее время пользуется чатом
 {
 	if (getName.empty())
-			std::cout << "\n\t\t\t\t\t\t---No one is using the chat right now---\n";
-	
+		std::cout << "\n\t\t\t\t\t\t---No one is using the chat right now---\n";
+
 	else
-			std::cout << "\n\t\t\t\t\t\t--Now the chat is used by: " << getName << "---\n";
-	
+		std::cout << "\n\t\t\t\t\t\t--Now the chat is used by: " << getName << "---\n";
+
 }
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------
 int newMessenger(std::vector <Message>& ollMessage, std::vector <CounterMessages>& oldMessage, const bool showMessages, const std::string& nik) // извещеие о наличии новых сообщений
@@ -312,14 +263,7 @@ int newMessenger(std::vector <Message>& ollMessage, std::vector <CounterMessages
 
 }
 //------------------------------------------------------------------------------------------------------------------------
-void getTimeMessage(int& dayMessage, int& monthMessage, int& yearMessage)
-{
-	SYSTEMTIME dateMessage;
-	GetSystemTime(&dateMessage);
-	dayMessage = dateMessage.wDay;
-	monthMessage = dateMessage.wMonth;
-	yearMessage = dateMessage.wYear;
-}
+
 
 int main()
 {
@@ -337,9 +281,8 @@ int main()
 	std::string password; // пароль вводимый пользователем
 	User workingUserData;
 
-		//####################################################################################
-	constexpr auto SQL_RESULT_LEN = 240;
-	constexpr auto SQL_RETURN_CODE_LEN = 1024;
+	//####################################################################################
+
 	SQLHANDLE sqlConnHandle{ nullptr }; // дескриптор для соединения с базой данных
 	SQLHANDLE sqlEnvHandle{ nullptr }; // дескриптор окружения базы данных
 	SQLHANDLE sqlStmtHandle{ nullptr };  //
@@ -394,7 +337,7 @@ int main()
 		}
 	}
 	//#########################################################################################################
-	
+
 	while (userMenu)
 	{
 
@@ -412,15 +355,15 @@ int main()
 		{
 		case '1':  //регистрация
 		{
-			getName=regUser();
+			getName = regUser();
 			currentUser(getName);
 			messageMenu = true;
-						break;
+			break;
 		}
 
 		case '2':  //вход
 		{
-			loginUser(getName, workingUserData);
+			loginUser(getName);
 			messageMenu = true;
 			currentUser(getName);
 			newMessenger(ollMessage, oldMessage, 1, getName);
@@ -442,11 +385,8 @@ int main()
 
 
 		}
-		int dayMessage;
-		int monthMessage;
-		int yearMessage;
-		std::vector <Message> timeMessage; // Время создания всех сообщений
-		 while (messageMenu)
+
+		while (messageMenu)
 		{
 
 			std::cout << "***************************\n";
@@ -465,14 +405,7 @@ int main()
 			{
 			case '1':  //написать сообщение
 			{
-				std::string toUser = verifyingRecipient(workingUserData);
-				std::cout << "\nEnter a message:\n";
-				//(std::cin >> message).get();// если не будет работать cin раскоментить эту строку
-				getline(std::cin, message);
-				getTimeMessage(dayMessage, monthMessage, yearMessage);
-				std::cout << "\n";
-				ollMessage.push_back(Message(message, getName, toUser, dayMessage, monthMessage, yearMessage));//добавляем к списку сообщений
-				newMessage.push_back(CounterMessages(toUser));// добавляем в счётчик новых сообщений
+				creatingMessage(getName);
 				break;
 			}
 

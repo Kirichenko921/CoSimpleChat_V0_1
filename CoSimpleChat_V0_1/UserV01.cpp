@@ -1,56 +1,43 @@
 ﻿#include "UserV01.h"
 
-User::UserData::UserData(const std::string& userName, uint* userPassword) :_userName(userName),_userPassword(userPassword)
+bool checkingLogin(SQLHANDLE& sqlStmtHandle, std::string& checkNik) 
 {
-}
+	//bool checking = false;//  условие для выхода из цикла проверки уникальности логина
+	std::string nik;  //Nik, который вводит пользователь
+	std::stringstream ssTemp; // Переменная для преобразования результатов запросов в string
+	std::string query; // запрос к базе данных (string принимает запросы в которых есть переменные)
+	std::wstring wsQuery; // приведение string к wstring (wstring запросы с переменными не принимает)
 
-User::User() = default;
-
-bool User::checkingLogin(const std::string& nik) // проверка наличия логина
-{	
-	for (auto x : _hashTableUser)
+	std::cout << "Enter a Nik: \n";
+	//(std::cin >> nik).get();// если не будет работать cin раскоментить эту строку
+	getline(std::cin, nik);  // ввод логина (ника)
+	std::cout << "\n";
+	query = ("SELECT login FROM users_info  WHERE login LIKE  '" + nik + "'; ");// формируем запрос
+	wsQuery = std::wstring(query.begin(), query.end()); // преобразовываем запрос
+	if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS)) // запрашиваем в базе
 	{
-		if (x.first == nik)
+		std::cout << "Error querying SQL Server \n";
+		//goto COMPLETED;
+	}
+	else
+	{
+		SQLCHAR nikName[SQL_RESULT_LEN];  // переменная для хранения результата запроса
+		while (SQLFetch(sqlStmtHandle) == SQL_SUCCESS)
+		{
+			SQLGetData(sqlStmtHandle, 1, SQL_CHAR, nikName, SQL_RESULT_LEN, NULL);
+		}
+		ssTemp << nikName;  // преобразовываем результат запроса  в string
+		checkNik = ssTemp.str();
+		if (checkNik == nik)   //  если логин есть в базе
+		{
+						return true;
+		}
+		else
+		{
 			return false;
-	}
-	return true;
-}
+		}
 
-void User::registration(const std::string& nik, const std::string& userPassword,const std::string& userName)//регистрация пользователя
-{
-	char cUserPassword[PASSLENGTH];
-	userPassword.copy(cUserPassword, PASSLENGTH);
-	cUserPassword[userPassword.length()] = '\0';
-		uint* digest = sha1(cUserPassword, PASSLENGTH); // вычисляем хэш пароля через алгоритм SHA1
-	UserData currentData( userName,digest);
-	_hashTableUser.insert({ nik,currentData });
-	++countUser;
-}
-void User::showLogins()
-{
-	for (std::unordered_map< std::string, UserData>::iterator it = _hashTableUser.begin(); it != _hashTableUser.end(); ++it)
-	{
-		std::cout <<"\t\t\t\t\t\t\t"<< it->first <<"\n";
 	}
 }
-bool User::comparisonLogin(const std::string& nik,const std::string& userPassword)// сличение введённой пары логин-пароль с сущесвующей в массиве
-{
-	char cUserPassword[PASSLENGTH];
-	userPassword.copy(cUserPassword, PASSLENGTH);
-	cUserPassword[userPassword.length()] = '\0';
-    uint* digest = sha1(cUserPassword, PASSLENGTH);//генериуем хэш пароля
-    
-    for (std::unordered_map< std::string, UserData>::iterator it = _hashTableUser.begin(); it != _hashTableUser.end(); ++it) // ищем логин
-    {
-		if (it->first == nik) // если нашли логин
-        {
-            if (!memcmp(digest, it->second._userPassword, SHA1HASHLENGTHBYTES)) // сличаем хэши паролей 
-                return true;
-            
-                return false;
-        }
 
-    }
-    // если логин не нашли
-    return false;
-}
+
