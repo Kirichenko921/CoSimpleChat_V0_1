@@ -8,57 +8,6 @@
 #include <vector>
 
 
-//###############################################################################################################################################
-std::string creatingMessage(std::string author) // создание сообщения
-{
-	std::string message;
-	std::stringstream ssTemp; // Переменная для преобразования результатов запросов в string 
-	std::string query; // запрос к базе данных (string принимает запросы в которых есть переменные)
-	std::wstring wsQuery; // приведение string к wstring (wstring запросы с переменными не принимает)
-	std::string  recipient; // получатель сообщения
-	bool checking = false;//  условие для выхода из цикла проверки уникальности логина
-	checking = checkingLogin(sqlStmtHandle, recipient);
-	if (!checking)
-		std::cout << "There is no such login in the chat, try writing a message to an existing user!" << std::endl;
-
-
-	else
-	{
-		std::cout << "\nEnter a message:\n";
-		//(std::cin >> message).get();// если не будет работать cin раскоментить эту строку
-		getline(std::cin, message);
-
-		query = "INSERT INTO user_messages VALUES (null, (select id_users from users_info where login = '" + author + "'), (select id_users from users_info where login = '" + recipient + "'), '" + message + "', CURRENT_DATE, 0);";
-		wsQuery = std::wstring(query.begin(), query.end());
-		if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS))
-		{
-			std::cout << "Error querying SQL Server \n";
-			goto COMPLETED;
-		}
-	}
-}
-}
-//###############################################################################################################################################
-void  readMessage(const std::string& user, const std::vector<Message>& allmess) // чтение всех сообщений для пользователя
-{
-	int count = 0;
-	const auto size = allmess.size();
-	for (size_t i = 0; i < size; ++i)
-	{
-		if (allmess[i].getSendToUser() == user || allmess[i].getSendToUser() == "all")
-		{
-			std::cout << "From whom: " << allmess[i].getSendFromUser() << std::endl;
-			std::cout << "Date of the message: " << allmess[i].getdayMessage() << "/"
-				<< allmess[i].getmonthMessage() << "/" << allmess[i].getyearMessage() << "/" << std::endl;
-			std::cout << "Message: " << allmess[i].getMessage() << std::endl;
-			++count;
-		}
-	}
-	if (count == 0)
-	{
-		std::cout << "There are no messages for you!\n";
-	}
-}
 //------------------------------------------------------------------------------------------------------------------------------
 void  readMessageUser(const std::string& user, const std::vector<Message>& allmess)// чтение сообщений от определённого пользователя
 {
@@ -280,7 +229,7 @@ int main()
 	std::string nik;  //Nik, который вводит пользователь
 	std::string password; // пароль вводимый пользователем
 	User workingUserData;
-
+	Messages messageProcessing;
 	//####################################################################################
 
 	SQLHANDLE sqlConnHandle{ nullptr }; // дескриптор для соединения с базой данных
@@ -405,24 +354,16 @@ int main()
 			{
 			case '1':  //написать сообщение
 			{
-				creatingMessage(getName);
+				messageProcessing.creatingMessage(sqlStmtHandle, getName);
 				break;
 			}
-
 
 			case '2':  //прочитать сообщения
 			{
-				readMessage(getName, ollMessage);  // читаем все сообщения
-				const int number = newMessenger(ollMessage, oldMessage, 0, getName); // присваиваем индексу разницу между количеством старых и новых сообщений
-				for (int i = 0; i < number; ++i)                      // выравниваем количество новых и старых сообщений
-				{
-					oldMessage.push_back(CounterMessages(getName));         // теперь все сообщения прочитаны
-				}
-				std::cout << "\n";
+				messageProcessing.readMessage(sqlStmtHandle,getName);  // читаем все сообщения
 				break;
 			}
-
-
+			
 			case '3':  // прочитать сообщения от определённого пользователя
 			{
 				readMessageUser(getName, ollMessage);
