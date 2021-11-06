@@ -29,9 +29,22 @@ void Messages::creatingMessage(SQLHANDLE& sqlStmtHandle, std::string author)
 
 void Messages::readMessage(SQLHANDLE& sqlStmtHandle, std::string getName)
 {
-	// запрашиваем все непрочитанные сообщения для текущего пользователя
-	query = "SELECT login,message_text,date_message,id_message FROM user_messages JOIN users_info ON id_users = id_author WHERE id_recipient = (select id_users from users_info where login = '" + getName + "') AND message_status = 1;";
-	wsQuery = std::wstring(query.begin(), query.end());
+	if (choice == 3) // если пользователь хочет прочитать сообщение от одного отправителя
+	{
+		while (!checking)
+		{
+			checking = checkingLogin(sqlStmtHandle, author);
+			if (!checking)
+				std::cout << "There is no such login in the chat, try to read the message of an existing user!" << std::endl;
+		}
+		query = "SELECT login,message_text,date_message,id_message FROM user_messages JOIN users_info ON id_users = id_author WHERE id_recipient = (select id_users from users_info where login = '" + getName + "') AND message_status = 1 AND  id_author = (select id_users from users_info where login= '" + author + "'); ";
+		wsQuery = std::wstring(query.begin(), query.end());
+	}
+	else // запрашиваем все непрочитанные сообщения для текущего пользователя
+	{
+		query = "SELECT login,message_text,date_message,id_message FROM user_messages JOIN users_info ON id_users = id_author WHERE id_recipient = (select id_users from users_info where login = '" + getName + "') AND message_status = 1;";
+		wsQuery = std::wstring(query.begin(), query.end());
+	}
 	if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)wsQuery.c_str(), SQL_NTS))
 	{
 		std::cout << "Error querying SQL Server \n";
