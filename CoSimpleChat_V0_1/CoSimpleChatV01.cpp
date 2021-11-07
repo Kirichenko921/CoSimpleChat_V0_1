@@ -86,48 +86,6 @@ int main()
 
 	std::cout << "\nExecuting T-SQL query...\n";
 
-	// Если выполнение запроса с ошибками, то выходим из программы
-	if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)L"SELECT @@VERSION", SQL_NTS)) {
-		std::cout << "Error querying SQL Server \n";
-		goto COMPLETED;
-	}
-	else {
-
-		//Объявление структуры данных для результата запроса версии SQL
-		SQLCHAR sqlVersion[SQL_RESULT_LEN];
-		SQLLEN ptrSqlVersion;
-
-		while (SQLFetch(sqlStmtHandle) == SQL_SUCCESS) {
-
-			SQLGetData(sqlStmtHandle, 1, SQL_CHAR, sqlVersion, SQL_RESULT_LEN, &ptrSqlVersion);
-
-			//Выведем на экран версию SQL
-			std::cout << "\nQuery Result:\n\n";
-			std::cout << sqlVersion << std::endl;
-		}
-	}
-
-
-	if (SQL_SUCCESS != SQLExecDirect(sqlStmtHandle, (SQLWCHAR*)L"SELECT id_users,login FROM users_info", SQL_NTS))
-	{
-		std::cout << "Error querying SQL Server \n";
-		goto COMPLETED;
-	}
-	else {
-		std::cout << "\nQuery Result:\n\n";
-		//Объявление структуры данных для результата запроса версии SQL
-		SQLCHAR name[SQL_RESULT_LEN];
-		SQLINTEGER id;
-
-		while (SQLFetch(sqlStmtHandle) == SQL_SUCCESS) {
-
-			SQLGetData(sqlStmtHandle, 1, SQL_INTEGER, &id, sizeof(SQLINTEGER), NULL);
-			SQLGetData(sqlStmtHandle, 2, SQL_CHAR, name, SQL_RESULT_LEN, NULL);
-
-			//Выведем на экран номер и имя
-			std::cout << name << std::endl;
-		}
-	}
 	//#########################################################################################################
 
 	while (userMenu)
