@@ -1,9 +1,7 @@
 ﻿#pragma once
 
-
 #ifndef SHA1_HPP
 #define SHA1_HPP
-
 
 #include <cstdint>
 #include <fstream>
@@ -29,7 +27,7 @@ private:
 };
 
 
-static const size_t BLOCK_INTS = 16;  // количество 32-битных целых чисел на блок SHA1 
+static const size_t BLOCK_INTS = 16;  /* number of 32bit integers per SHA1 block */
 static const size_t BLOCK_BYTES = BLOCK_INTS * 4;
 
 
@@ -60,7 +58,9 @@ inline static uint32_t blk(const uint32_t block[BLOCK_INTS], const size_t i)
 }
 
 
-/ // (R0+R1), R2, R3, R4 - различные операции, используемые в SHA1
+/*
+ * (R0+R1), R2, R3, R4 are the different operations used in SHA1
+ */
 
 inline static void R0(const uint32_t block[BLOCK_INTS], const uint32_t v, uint32_t& w, const uint32_t x, const uint32_t y, uint32_t& z, const size_t i)
 {
@@ -101,18 +101,20 @@ inline static void R4(uint32_t block[BLOCK_INTS], const uint32_t v, uint32_t& w,
 }
 
 
-// Хэшируем один 512-битный блок. Это ядро алгоритма.
+/*
+ * Hash a single 512-bit block. This is the core of the algorithm.
+ */
 
 inline static void transform(uint32_t digest[], uint32_t block[BLOCK_INTS], uint64_t& transforms)
 {
-    //Копируем дайджест[] в рабочие переменные 
+    /* Copy digest[] to working vars */
     uint32_t a = digest[0];
     uint32_t b = digest[1];
     uint32_t c = digest[2];
     uint32_t d = digest[3];
     uint32_t e = digest[4];
 
-    //4 раунда по 20 операций в каждом. 
+    /* 4 rounds of 20 operations each. Loop unrolled. */
     R0(block, a, b, c, d, e, 0);
     R0(block, e, a, b, c, d, 1);
     R0(block, d, e, a, b, c, 2);
@@ -194,21 +196,21 @@ inline static void transform(uint32_t digest[], uint32_t block[BLOCK_INTS], uint
     R4(block, c, d, e, a, b, 14);
     R4(block, b, c, d, e, a, 15);
 
-    //Добавляем рабочие переменные обратно в дайджест[] 
+    /* Add the working vars back into digest[] */
     digest[0] += a;
     digest[1] += b;
     digest[2] += c;
     digest[3] += d;
     digest[4] += e;
 
-    // Подсчёт  количества преобразований
+    /* Count the number of transformations */
     transforms++;
 }
 
 
 inline static void buffer_to_block(const std::string& buffer, uint32_t block[BLOCK_INTS])
 {
-    //Преобразовываем строку std:: (байтовый буфер) в массив uint32_t (MSB) 
+    /* Convert the std::string (byte buffer) to a uint32_t array (MSB) */
     for (size_t i = 0; i < BLOCK_INTS; i++)
     {
         block[i] = (buffer[4 * i + 3] & 0xff)
@@ -251,14 +253,16 @@ inline void SHA1::update(std::istream& is)
 }
 
 
-//Добавляем отступы и возвращаем дайджест сообщения.
+/*
+ * Add padding and return the message digest.
+ */
 
 inline std::string SHA1::final()
 {
-    //Общее количество хэшированных битов
+    /* Total number of hashed bits */
     uint64_t total_bits = (transforms * BLOCK_BYTES + buffer.size()) * 8;
 
-    //Набивка 
+    /* Padding */
     buffer += (char)0x80;
     size_t orig_size = buffer.size();
     while (buffer.size() < BLOCK_BYTES)
@@ -278,12 +282,12 @@ inline std::string SHA1::final()
         }
     }
 
-    // Добавляем total_bits, делим этот uint64_t на два uint32_t 
+    /* Append total_bits, split this uint64_t into two uint32_t */
     block[BLOCK_INTS - 1] = (uint32_t)total_bits;
     block[BLOCK_INTS - 2] = (uint32_t)(total_bits >> 32);
     transform(digest, block, transforms);
 
-    //Шестнатеричный std::string 
+    /* Hex std::string */
     std::ostringstream result;
     for (size_t i = 0; i < sizeof(digest) / sizeof(digest[0]); i++)
     {
@@ -291,7 +295,7 @@ inline std::string SHA1::final()
         result << digest[i];
     }
 
-    // Сброс для следующего запуска
+    /* Reset for next run */
     reset(digest, buffer, transforms);
 
     return result.str();
@@ -307,4 +311,4 @@ inline std::string SHA1::from_file(const std::string& filename)
 }
 
 
-#endif /* SHA1_HPP */
+#endif /* SHA1_HPP */#pragma once
